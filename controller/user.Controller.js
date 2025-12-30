@@ -70,6 +70,41 @@ exports.createSignup = async (req, res) => {
   }
 };
 
+// verify user
+exports.handleappotp= async (req, res)=> {
+  try {
+    const { otp } = req.body;
+
+    if (!otp) {
+      return res.status(400).json({ message: "OTP is required" });
+    }
+
+    // Find the OTP entry
+    const record = await SignupSem.findOne({ otp });
+
+    if (!record) {
+      return res.status(404).json({ message: "Invalid or expired OTP" });
+    }
+
+    // Update approval status
+    const updateResult = await SignupSem.updateOne(
+      { gmail: record.gmail, otp: otp },
+      { $set: { isapproved: true } }
+    );
+    const finalresult = await SignupSem.findOne({ otp });
+    // Send proper response
+    if (updateResult.modifiedCount > 0) {
+      return res.status(200).json({ message: "OTP verified successfully", finalresult });
+    } else {
+      return res.status(200).json({ message: "Already verified", finalresult });
+    }
+
+  } catch (error) {
+    console.error("Error in handleOtp:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 /**
  * GET ALL USERS
  */
