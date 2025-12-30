@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const Signupschema = new mongoose.Schema({
     full_name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    gmail: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     mobile_number: { type: Number, required: true, unique: true },
     state: { type: String, required: true },
@@ -14,7 +14,7 @@ const Signupschema = new mongoose.Schema({
         required: true,
         enum: ["labour", "employe", "transporter", "supervisor", "admin"],
     },
-    otp: { type: Number, required: true },
+    otp: { type: Number},
     isapproved: { type: Boolean, default: false },
     gender: {
         type: String,
