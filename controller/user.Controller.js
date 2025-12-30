@@ -1,5 +1,6 @@
 const SignupSem = require("../models/signup.Model");
-let nodemailer= require('nodemailer')
+let nodemailer= require('nodemailer');
+const { setExhibition } = require("../utils/service");
 /**
  * CREATE SIGNUP
  */
@@ -56,12 +57,17 @@ exports.createSignup = async (req, res) => {
 
 
     console.log("Generated OTP:", otp);
+     
     const user = await SignupSem.create({full_name,gmail,mobile_number,city,state,country,address,otp,role,gender,password});
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: user
-    });
+    const token = setExhibition(user);
+    console.log("User logged in:", user.gmail);
+    res
+      .cookie("uid", token, { httpOnly: true, secure: true })
+      .status(200)
+      .json({
+        message: "user created  successful",
+        user,
+      });
   } catch (error) {
     res.status(400).json({
       success: false,
@@ -69,6 +75,43 @@ exports.createSignup = async (req, res) => {
     });
   }
 };
+
+exports.handleapplogin = async function (req, res) {
+  try {
+    const { gmail, password } = req.body;
+    console.log(gmail, password);
+
+    // 1️⃣ Find user by email only
+    const user1 = await SignupSem.findOne({ gmail, isapproved: false });
+    if (user1) {
+      return res
+        .status(404)
+        .json({
+          message: "User Not registered",
+        });
+    } else {
+
+    }
+    let user = await SignupSem.findOne({ gmail ,password})
+    if (!user) return res.status(401).json({ message: "Invalid email or password" });
+
+    // 3️⃣ Create and send token
+    const token = setExhibition(user);
+    console.log("User logged in:", user.gmail);
+
+    res
+      .cookie("uid", token, { httpOnly: true, secure: true })
+      .status(200)
+      .json({
+        message: "Login successful",
+        user, // You may want to exclude password before sending
+      });
+
+  } catch (err) {
+    console.error("Login Error:", err);
+    return handleServerError(res, err, "Login failed");
+  }
+}
 
 // verify user
 exports.handleappotp= async (req, res)=> {
