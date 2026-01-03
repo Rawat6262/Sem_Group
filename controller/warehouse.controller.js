@@ -11,3 +11,11 @@ exports.createWarehouse = async (req, res) => {
   await warehouse.save();
   res.send(warehouse);
 }
+
+exports.getwarehouse = async (req,res)=>{
+   const warehouse =  await Warehouse.find({
+  });
+
+  // await warehouse.save();
+  res.send(warehouse); 
+}
