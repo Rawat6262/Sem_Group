@@ -3,7 +3,7 @@ const   router = express.Router();
 const signupController = require("../controller/user.Controller");
 // const {handleappotp} = require('../controller/user.Controller')
 const { addProduct, getproduct, addProductInwarehouse } = require("../controller/product.controller");
-const { createWarehouse, getwarehouse } = require("../controller/warehouse.controller");
+const { createWarehouse, getwarehouse, getWarehouseProducts } = require("../controller/warehouse.controller");
 
 router.post("/signup", signupController.createSignup);
 router.post("/otp", signupController.handleappotp);
@@ -17,4 +17,5 @@ router.get("/warehouse",getwarehouse)
 router.post("/addproduct",addProduct)
 router.get("/addproduct",getproduct)
 router.put("/warehouse/:id/add-product",addProductInwarehouse)
+router.get("/warehouse/:warehouseId/products", getWarehouseProducts);
 module.exports = router;

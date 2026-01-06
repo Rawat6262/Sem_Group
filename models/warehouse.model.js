@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 
 const warehouseSchema = new mongoose.Schema({
-  warehouseNo: String,
+  warehouseNo: {
+    type:Number,
+    unique:true
+  },
   name: String,
   location: String,
 
@@ -9,7 +12,6 @@ const warehouseSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      unique:true
     }
   ]
 });
