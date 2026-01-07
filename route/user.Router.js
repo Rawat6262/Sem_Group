@@ -18,4 +18,11 @@ router.post("/addproduct",addProduct)
 router.get("/addproduct",getproduct)
 router.put("/warehouse/:id/add-product",addProductInwarehouse)
 router.get("/warehouse/:warehouseId/products", getWarehouseProducts);
+const categoryController = require("../controller/category.controller");
+
+// CRUD Routes
+router.post("/category", categoryController.createCategory);
+router.get("/category", categoryController.getCategories);
+router.put("/category/:id", categoryController.updateCategory);
+router.delete("/category/:id", categoryController.deleteCategory);
 module.exports = router;

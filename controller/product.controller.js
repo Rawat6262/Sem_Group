@@ -53,7 +53,6 @@ exports.addProduct = async (req, res) => {
       category,
       repair_item,
       out_for_exhibition,
-      total_no,
     });
 
     const savedProduct = await product.save();
