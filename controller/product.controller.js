@@ -18,9 +18,44 @@ exports.addProductInwarehouse =  async (req, res) => {
 }
 
 
-exports.addProduct= async (req, res) => {
+exports.addProduct = async (req, res) => {
   try {
-    const product = new Product(req.body);
+    const {
+      name,
+      no_of_item,
+      category,
+      repair_item = 0,
+      out_for_exhibition = 0,
+    } = req.body;
+
+    // ✅ Validation
+    if (!name || no_of_item == null || !category) {
+      return res.status(400).json({
+        success: false,
+        message: "name, no_of_item and category are required",
+      });
+    }
+
+    if (repair_item + out_for_exhibition > no_of_item) {
+      return res.status(400).json({
+        success: false,
+        message: "repair_item + out_for_exhibition cannot exceed no_of_item",
+      });
+    }
+
+    // ✅ AUTO CALCULATION
+    const total_no = no_of_item - repair_item - out_for_exhibition;
+
+    // ✅ SAVE STYLE
+    const product = new Product({
+      name,
+      no_of_item,
+      category,
+      repair_item,
+      out_for_exhibition,
+      total_no,
+    });
+
     const savedProduct = await product.save();
 
     res.status(201).json({
@@ -33,7 +68,9 @@ exports.addProduct= async (req, res) => {
       message: error.message,
     });
   }
-}
+};
+
+
 
 /**
  * @route   GET /api/products
