@@ -25,4 +25,15 @@ router.post("/category", categoryController.createCategory);
 router.get("/category", categoryController.getCategories);
 router.put("/category/:id", categoryController.updateCategory);
 router.delete("/category/:id", categoryController.deleteCategory);
+// routes/vendor.routes.js
+
+const vendorController = require("../controller/vendor.controller");
+
+router.post("/addvendor", vendorController.createVendor);
+router.get("/getvendor", vendorController.getAllVendors);
+router.get("/getvendorbyid:id", vendorController.getVendorById);
+router.put("/updatevendor:id", vendorController.updateVendor);
+router.delete("/deletevendor:id", vendorController.deleteVendor);
+
+
 module.exports = router;
