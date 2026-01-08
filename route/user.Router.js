@@ -31,9 +31,9 @@ const vendorController = require("../controller/vendor.controller");
 
 router.post("/addvendor", vendorController.createVendor);
 router.get("/getvendor", vendorController.getAllVendors);
-router.get("/getvendorbyid:id", vendorController.getVendorById);
-router.put("/updatevendor:id", vendorController.updateVendor);
-router.delete("/deletevendor:id", vendorController.deleteVendor);
+router.get("/getvendorbyid/:id", vendorController.getVendorById);
+router.put("/updatevendor/:id", vendorController.updateVendor);
+router.delete("/deletevendor/:id", vendorController.deleteVendor);
 
 
 module.exports = router;
