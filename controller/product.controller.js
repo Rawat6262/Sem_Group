@@ -26,6 +26,7 @@ exports.addProduct = async (req, res) => {
       category,
       repair_item = 0,
       out_for_exhibition = 0,
+      vendor
     } = req.body;
 
     // ✅ Validation
@@ -52,7 +53,7 @@ exports.addProduct = async (req, res) => {
       no_of_item,
       category,
       repair_item,
-      out_for_exhibition,
+      out_for_exhibition,vendor
     });
 
     const savedProduct = await product.save();
@@ -77,7 +78,7 @@ exports.addProduct = async (req, res) => {
  */
 exports.getproduct = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find().populate('vendor')
 
     res.status(200).json({
       success: true,

@@ -9,6 +9,13 @@ const productSchema = new mongoose.Schema(
     out_for_exhibition: { type: Number, default: 0, min: 0 },
     remark: { type: String },
     total_no: { type: Number, min: 0 },
+    vendor:{
+      type: mongoose.Schema.Types.ObjectId,
+            ref: "Vendor",
+    },
+    remark:{
+      type:String
+    }
   },
   { timestamps: true }
 );
