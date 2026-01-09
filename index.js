@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const router = require("./route/user.Router");
 const Connection = require("./connection/user.Connection");
+const countryrouter = require("./controller/country.sate.city.controller");
 require("dotenv").config();
 
 const app = express();
@@ -12,6 +13,7 @@ module.exports = app;
 
 // Routes
 app.use("/", router);
+app.use("/location", countryrouter);
 
 Connection(process.env.MONGO_URL)
   .then(() => console.log("MongoDB Connected"))

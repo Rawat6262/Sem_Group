@@ -34,6 +34,20 @@ router.get("/getvendor", vendorController.getAllVendors);
 router.get("/getvendorbyid/:id", vendorController.getVendorById);
 router.put("/updatevendor/:id", vendorController.updateVendor);
 router.delete("/deletevendor/:id", vendorController.deleteVendor);
+const clientController = require("../controller/client.controller");
+router.post("/createclient", clientController.createClient);
+router.get("/getclient", clientController.getAllClients);
+router.get("/getsingleclient/:id", clientController.getClientById);
+router.put("/updateclient/:id", clientController.updateClient);
+router.delete("/deleteclientr/:id", clientController.deleteClient);  
 
+const exhibitionController = require("../controller/exhibition.controller");
 
+// CRUD Routes
+router.post("/createexhibition", exhibitionController.createExhibition);
+router.get("/getexhibitions", exhibitionController.getAllExhibitions);
+router.get("/getsingleexhibition/:id", exhibitionController.getExhibitionById);
+router.put("/updateexhibition/:id", exhibitionController.updateExhibition);
+router.delete("/deleteexhibition/:id", exhibitionController.deleteExhibition);
+router.put("/exhibition/:id/add-client",exhibitionController.addclient)
 module.exports = router;
