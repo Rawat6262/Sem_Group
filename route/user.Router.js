@@ -39,7 +39,7 @@ router.post("/createclient", clientController.createClient);
 router.get("/getclient", clientController.getAllClients);
 router.get("/getsingleclient/:id", clientController.getClientById);
 router.put("/updateclient/:id", clientController.updateClient);
-router.delete("/deleteclientr/:id", clientController.deleteClient);  
+router.delete("/deleteclient/:id", clientController.deleteClient);  
 
 const exhibitionController = require("../controller/exhibition.controller");
 
@@ -49,5 +49,22 @@ router.get("/getexhibitions", exhibitionController.getAllExhibitions);
 router.get("/getsingleexhibition/:id", exhibitionController.getExhibitionById);
 router.put("/updateexhibition/:id", exhibitionController.updateExhibition);
 router.delete("/deleteexhibition/:id", exhibitionController.deleteExhibition);
-router.put("/exhibition/:id/add-client",exhibitionController.addclient)
+router.put("/exhibition/:id/add-client",exhibitionController.addclient) 
+const {
+  createDesign,
+  getAllDesigns,
+  getDesignById,
+  updateDesign,
+  deleteDesign,
+  getDesignsByClient,
+  makeDesignFinal,
+} = require("../controller/design.controller");
+
+ router.post("/createdesign/:taken_by", createDesign);
+router.get("/getalldesign", getAllDesigns);
+router.get("/getdesignbyid/:id", getDesignById);
+router.get("/clientdesign/:taken_by", getDesignsByClient);
+router.put("/updatedesign/:id", updateDesign);
+router.delete("/deletedesign/:id", deleteDesign);
+router.patch("/finaldesign/:id", makeDesignFinal);
 module.exports = router;

@@ -20,6 +20,12 @@ const clientSchema = new mongoose.Schema(
     remarks: { type: String },
 
     isActive: { type: Boolean, default: true },
+    design:[
+      {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Design"
+      }
+    ]
   },
   { timestamps: true }
 );

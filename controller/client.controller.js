@@ -98,10 +98,8 @@ exports.updateClient = async (req, res) => {
 // ✅ DELETE Client (Soft Delete)
 exports.deleteClient = async (req, res) => {
   try {
-    const client = await Client.findByIdAndUpdate(
+    const client = await Client.findByIdAndDelete(
       req.params.id,
-      { isActive: false },
-      { new: true }
     );
 
     if (!client) {
