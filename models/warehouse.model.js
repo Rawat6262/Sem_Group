@@ -5,9 +5,28 @@ const warehouseSchema = new mongoose.Schema({
     type:Number,
     unique:true
   },
+    country: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    state: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    city: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   name: String,
-  location: String,
-
+  address:{
+      type: String,
+      required: true,
+      unique: true,
+    
+    },
   products: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -17,4 +36,4 @@ const warehouseSchema = new mongoose.Schema({
 });
 
 let Warehouse = mongoose.model("Warehouse", warehouseSchema);
-module.exports =Warehouse
+module.exports =Warehouse;

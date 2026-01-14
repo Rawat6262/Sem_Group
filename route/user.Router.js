@@ -67,4 +67,19 @@ router.get("/clientdesign/:taken_by", getDesignsByClient);
 router.put("/updatedesign/:id", updateDesign);
 router.delete("/deletedesign/:id", deleteDesign);
 router.patch("/finaldesign/:id", makeDesignFinal);
+const {
+  createTransporter,
+  getAllTransporters,
+  getTransporterById,
+  updateTransporter,
+  deleteTransporter,
+} = require("../controller/transporter.controller");
+
+router.post("/createtransporter", createTransporter);
+router.get("/gettransporter", getAllTransporters);
+router.get("/getsingletransporter/:id", getTransporterById);
+router.put("/updatetransporter/:id", updateTransporter);
+router.delete("/deletetransporter/:id", deleteTransporter);
+
+// module.exports = router;
 module.exports = router;

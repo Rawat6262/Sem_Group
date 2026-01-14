@@ -5,12 +5,16 @@ exports.addProductInwarehouse =  async (req, res) => {
   let warehouseId =req.params.id;
   console.log(warehouseId)
   const warehouse = await Warehouse.findById(req.params.id);
-
   warehouse.products.push(req.body.productId);
 
   await Warehouse.findByIdAndUpdate(
   warehouseId,
   { $addToSet: { products:req.body.productId } }, // 👈 prevents duplicates
+  { new: true }
+);
+  await Product.findByIdAndUpdate(
+  req.body.productId,
+  { $addToSet: { warehouse: req.params.id } }, // 👈 prevents duplicates
   { new: true }
 );
 
@@ -93,3 +97,9 @@ exports.getproduct = async (req, res) => {
   }
 }
 
+// exports.updateproduct = async (req, res) => {
+//   try{
+
+
+//   }
+// }

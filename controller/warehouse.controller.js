@@ -4,7 +4,10 @@ exports.createWarehouse = async (req, res) => {
   const warehouse = new Warehouse({
     warehouseNo: req.body.warehouseNo,
     name: req.body.name,
-    location: req.body.location,
+    address: req.body.address,
+    country: req.body.country,
+    state: req.body.state,
+    city: req.body.city,  
     products: []
   });
 
@@ -42,7 +45,11 @@ exports.getWarehouseProducts = async (req, res) => {
       warehouseId: warehouse._id,
       warehouseName: warehouse.name,
       totalProducts: productCount,
-      products: warehouse.products
+      products: warehouse.products,
+      country: warehouse.country,
+      state: warehouse.state,
+      city: warehouse.city,
+      address: warehouse.address
     });
 
   } catch (error) {

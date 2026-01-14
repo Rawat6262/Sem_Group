@@ -7,15 +7,22 @@ const productSchema = new mongoose.Schema(
     category: { type: String, required: true },
     repair_item: { type: Number, default: 0, min: 0 },
     out_for_exhibition: { type: Number, default: 0, min: 0 },
+    lost: { type: Number, default: 0, min: 0 },
+    dead: { type: Number, default: 0, min: 0 },
+
     remark: { type: String },
     total_no: { type: Number, min: 0 },
     vendor:{
       type: mongoose.Schema.Types.ObjectId,
             ref: "Vendor",
     },
+    warehouse:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:'Warehouse'
+    },
     remark:{
       type:String
-    }
+    },
   },
   { timestamps: true }
 );
@@ -25,7 +32,7 @@ const productSchema = new mongoose.Schema(
 //
 productSchema.pre("save", function () {
   this.total_no =
-    this.no_of_item - this.repair_item - this.out_for_exhibition;
+    this.no_of_item - this.repair_item - this.out_for_exhibition - this.lost - this.dead;
 });
 
 //
@@ -40,11 +47,13 @@ productSchema.pre("findOneAndUpdate", async function () {
 
   const no_of_item = $set.no_of_item ?? doc.no_of_item;
   const repair_item = $set.repair_item ?? doc.repair_item;
+  const lost = $set.lost ?? doc.lost;
+  const dead = $set.dead ?? doc.dead;
   const out_for_exhibition =
     $set.out_for_exhibition ?? doc.out_for_exhibition;
 
   $set.total_no =
-    no_of_item - repair_item - out_for_exhibition;
+    no_of_item - repair_item - out_for_exhibition - lost - dead;
 
   this.setUpdate({ $set });
 });
