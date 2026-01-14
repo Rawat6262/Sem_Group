@@ -46,7 +46,7 @@ exports.getAllDesigns = async (req, res) => {
 const Client = require("../models/client.model");
 
 /* ================= GET DESIGN BY ID ================= */
-exports.getDesignById = async (req, res) => {
+exports.getDesignById  = async (req, res) => {
   try {
     const design = await Client.find({ design: req.params.id })
       .populate("design");
