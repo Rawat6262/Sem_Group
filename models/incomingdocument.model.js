@@ -1,45 +1,90 @@
 const mongoose = require("mongoose");
 
-const transporterSchema = new mongoose.Schema(
+
+
+const incomingDeliveryChallanSchema = new mongoose.Schema(
   {
+    document_name: {
+      type: String,
+      default: "Incoming Delivery Challan",
+      trim: true,
+    },
+
+    document_number: {
+      type: Number,
+      required: true,
+      unique: true,   // always unique
+      trim: true,
+    },
+
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+    exhibition_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Exhibition", // exhibition collection
+      required: true,
+    },
+    exhibition_date: {
+      type: Date,
+      required: true,
+    },
+
+    exhibition_name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    gst_number: {
+      type: String,
+      default: "03CAQPK9502D1ZU",
+      trim: true,
+    },
+
+    exhibition_venue: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    from_warehouse: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "Warehouse", // warehouse collection
+    },
+    from_warehouse_name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    items: [
+       {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'itemSchema'
+      }, // array of objects 
+    ],
+
     transporter_name: {
       type: String,
       required: true,
       trim: true,
     },
-    country: {
+
+    transporter_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Transporter", // transporter collection
+      required: true,
+    },
+
+    vehicle_no: {
       type: String,
       required: true,
       trim: true,
-    },
-    state: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    city: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    address: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    phone_number: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-    payment: {
-      type: String,
-      enum: ["cash", "online", "upi", "bank"],
-      default: "cash",
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Transporter", transporterSchema);
+module.exports = mongoose.model("IncomingDeliveryChallan", incomingDeliveryChallanSchema);

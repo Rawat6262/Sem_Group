@@ -2,7 +2,7 @@ const express = require("express");
 const   router = express.Router();
 const signupController = require("../controller/user.Controller");
 // const {handleappotp} = require('../controller/user.Controller')
-const { addProduct, getproduct, addProductInwarehouse } = require("../controller/product.controller");
+const { addProduct, getproduct, addProductInwarehouse, updateproduct, outgoingexhibitionproduct } = require("../controller/product.controller");
 const { createWarehouse, getwarehouse, getWarehouseProducts } = require("../controller/warehouse.controller");
 
 router.post("/signup", signupController.createSignup);
@@ -16,6 +16,8 @@ router.post("/warehouse",createWarehouse)
 router.get("/warehouse",getwarehouse)
 router.post("/addproduct",addProduct)
 router.get("/addproduct",getproduct)
+router.put("/updateproduct/:id",updateproduct);
+router.put("/outgoingexhibitionproduct/:id",outgoingexhibitionproduct);
 router.put("/warehouse/:id/add-product",addProductInwarehouse)
 router.get("/warehouse/:warehouseId/products", getWarehouseProducts);
 const categoryController = require("../controller/category.controller");
@@ -80,6 +82,12 @@ router.get("/gettransporter", getAllTransporters);
 router.get("/getsingletransporter/:id", getTransporterById);
 router.put("/updatetransporter/:id", updateTransporter);
 router.delete("/deletetransporter/:id", deleteTransporter);
+const controller = require("../controller/incomingdeliverychallan.controller.js");
+
+// router.post("/createincomingchallan", controller.createIncomingDeliveryChallan);
+// router.get("/getallincomingchallan", controller.getAllIncomingDeliveryChallans);
+// router.get("/getincomingchallan/:id", controller.getIncomingDeliveryChallanById);
+router.post("/createitem", controller.createItem);
 
 // module.exports = router;
 module.exports = router;

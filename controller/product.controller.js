@@ -30,14 +30,15 @@ exports.addProduct = async (req, res) => {
       category,
       repair_item = 0,
       out_for_exhibition = 0,
-      vendor
+      vendor,
+      warehouseid,unit
     } = req.body;
 
     // ✅ Validation
-    if (!name || no_of_item == null || !category) {
+    if (!name || no_of_item == null || !category || !unit) {
       return res.status(400).json({
         success: false,
-        message: "name, no_of_item and category are required",
+        message: "name, no_of_item, category and unit are required",
       });
     }
 
@@ -57,7 +58,10 @@ exports.addProduct = async (req, res) => {
       no_of_item,
       category,
       repair_item,
-      out_for_exhibition,vendor
+      unit,
+      out_for_exhibition,
+      vendor,
+      warehouse: warehouseid
     });
 
     const savedProduct = await product.save();
@@ -103,3 +107,56 @@ exports.getproduct = async (req, res) => {
 
 //   }
 // }
+exports.updateproduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const updateData = req.body;  
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Product updated successfully",
+      data: updatedProduct,
+    }
+    );  } catch (error) {
+    res.status(500).json({
+      success: false,
+    });
+  }}
+exports.outgoingexhibitionproduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const { out_for_exhibition, remark } = req.body;
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      {
+        $inc: { out_for_exhibition: out_for_exhibition }, // 🔥 AUTO detect increment
+        $set: { remark },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product moved to exhibition",
+      data: updatedProduct,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

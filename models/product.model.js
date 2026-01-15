@@ -1,3 +1,4 @@
+const e = require("express");
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
@@ -9,19 +10,24 @@ const productSchema = new mongoose.Schema(
     out_for_exhibition: { type: Number, default: 0, min: 0 },
     lost: { type: Number, default: 0, min: 0 },
     dead: { type: Number, default: 0, min: 0 },
+    unit: {
+      type: String,
+      required: true,
+      enum: ["pcs", "kg", "litre", "meter", "box", "packet", "dozen", "sqft.", "sqmtr.", "other", "set", "roll", "pair",],
+    },
 
     remark: { type: String },
     total_no: { type: Number, min: 0 },
-    vendor:{
+    vendor: {
       type: mongoose.Schema.Types.ObjectId,
-            ref: "Vendor",
+      ref: "Vendor",
     },
-    warehouse:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:'Warehouse'
+    warehouse: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Warehouse'
     },
-    remark:{
-      type:String
+    remark: {
+      type: String
     },
   },
   { timestamps: true }
@@ -52,8 +58,18 @@ productSchema.pre("findOneAndUpdate", async function () {
   const out_for_exhibition =
     $set.out_for_exhibition ?? doc.out_for_exhibition;
 
-  $set.total_no =
+  const total_no =
     no_of_item - repair_item - out_for_exhibition - lost - dead;
+
+  // ❌ STOP invalid update
+  if (total_no < 0) {
+    throw new Error(
+      "Invalid stock update: out_for_exhibition exceeds available stock"
+    );
+  }
+
+  // ✅ Apply calculated value
+  $set.total_no = total_no;
 
   this.setUpdate({ $set });
 });
