@@ -16,6 +16,7 @@ router.post("/warehouse",createWarehouse)
 router.get("/warehouse",getwarehouse)
 router.post("/addproduct",addProduct)
 router.get("/addproduct",getproduct)
+router.put("/updateproduct",updateproduct)
 router.put("/updateproduct/:id",updateproduct);
 router.put("/outgoingexhibitionproduct/:id",outgoingexhibitionproduct);
 router.put("/warehouse/:id/add-product",addProductInwarehouse)
@@ -87,7 +88,7 @@ const controller = require("../controller/incomingdeliverychallan.controller.js"
 // router.post("/createincomingchallan", controller.createIncomingDeliveryChallan);
 // router.get("/getallincomingchallan", controller.getAllIncomingDeliveryChallans);
 // router.get("/getincomingchallan/:id", controller.getIncomingDeliveryChallanById);
-router.post("/createitem", controller.createItem);
+router.post("/createitem", controller.createIncomingDeliveryChallan);
 
 // module.exports = router;
 module.exports = router;

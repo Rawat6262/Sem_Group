@@ -160,3 +160,26 @@ exports.outgoingexhibitionproduct = async (req, res) => {
     });
   }
 };
+
+// exports.updateproduct=async(req,res)=>{
+//   try{
+//     const productId = req.params.id;
+//     const updateData = req.body;  
+//     const updatedProduct = await Product.findByIdAndUpdate(
+//       productId,
+//       updateData,
+//       { new: true, runValidators: true }
+//     );
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Product updated successfully",
+//       data: updatedProduct,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//     }
+// }

@@ -22,6 +22,11 @@ const itemSchema = new mongoose.Schema(
       ref: "Product", // reference to Product collection
       required: true,
     }, 
+     unit: {
+      type: String,
+      required: true,
+      enum: ["pcs", "kg", "litre", "meter", "box", "packet", "dozen", "sqft.", "sqmtr.", "other", "set", "roll", "pair",],
+    },
   },
 );
 module.exports = mongoose.model("Item", itemSchema);

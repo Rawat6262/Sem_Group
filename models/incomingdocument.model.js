@@ -1,90 +1,107 @@
 const mongoose = require("mongoose");
 
-
+const incomingItemSchema = new mongoose.Schema(
+  {
+    item_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Item",
+      required: true,
+    },
+    item_name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    received_quantity: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    remark: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+  },
+  { _id: false }
+);
 
 const incomingDeliveryChallanSchema = new mongoose.Schema(
   {
     document_name: {
       type: String,
-      default: "Incoming Delivery Challan",
-      trim: true,
+      default: "Sem_group",
+      enum: ["Sem_group", "furnishkar"],
     },
-
     document_number: {
-      type: Number,
+      type: String,
       required: true,
-      unique: true,   // always unique
-      trim: true,
+      unique: true,
     },
-
     date: {
       type: Date,
       default: Date.now,
     },
     exhibition_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Exhibition", // exhibition collection
+      ref: "Exhibition",
       required: true,
     },
     exhibition_date: {
       type: Date,
       required: true,
     },
-
     exhibition_name: {
       type: String,
       required: true,
-      trim: true,
     },
-
     gst_number: {
       type: String,
       default: "03CAQPK9502D1ZU",
-      trim: true,
     },
-
     exhibition_venue: {
       type: String,
       required: true,
-      trim: true,
     },
-
     from_warehouse: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "Warehouse",
       required: true,
-      ref: "Warehouse", // warehouse collection
     },
     from_warehouse_name: {
       type: String,
       required: true,
-      trim: true,
     },
-    items: [
-       {
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'itemSchema'
-      }, // array of objects 
-    ],
+
+    // ✅ MULTIPLE ITEMS HERE
+    items: {
+      type: [incomingItemSchema],
+      required: true,
+    },
 
     transporter_name: {
       type: String,
       required: true,
-      trim: true,
     },
-
     transporter_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Transporter", // transporter collection
+      ref: "Transporter",
       required: true,
     },
-
     vehicle_no: {
       type: String,
       required: true,
-      trim: true,
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("IncomingDeliveryChallan", incomingDeliveryChallanSchema);
+module.exports = mongoose.model(
+  "IncomingDeliveryChallan",
+  incomingDeliveryChallanSchema
+);
