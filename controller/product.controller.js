@@ -31,7 +31,7 @@ exports.addProduct = async (req, res) => {
       repair_item = 0,
       out_for_exhibition = 0,
       vendor,
-      warehouseid,unit
+      warehouse,unit
     } = req.body;
 
     // ✅ Validation
@@ -61,7 +61,7 @@ exports.addProduct = async (req, res) => {
       unit,
       out_for_exhibition,
       vendor,
-      warehouse: warehouseid
+      warehouse
     });
 
     const savedProduct = await product.save();
