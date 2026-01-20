@@ -88,7 +88,7 @@ const controller = require("../controller/incomingdeliverychallan.controller.js"
 // router.post("/createincomingchallan", controller.createIncomingDeliveryChallan);
 // router.get("/getallincomingchallan", controller.getAllIncomingDeliveryChallans);
 // router.get("/getincomingchallan/:id", controller.getIncomingDeliveryChallanById);
-router.post("/createitem", controller.createIncomingDeliveryChallan);
+router.post("/createoutgoingdocument", controller.createIncomingDeliveryChallan);
 
 // module.exports = router;
 module.exports = router;
