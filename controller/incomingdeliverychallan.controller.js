@@ -65,7 +65,7 @@ const Product = require("../models/product.model");
 // };
      
 
-const IncomingDeliveryChallan = require("../models/incomingdocument.model");
+const IncomingDeliveryChallan = require("../models/outgoingdocument");
 const Exhibition = require("../models/exhibition.model");
 const Warehouse = require("../models/warehouse.model");
 const Transporter = require("../models/transporter.model");
@@ -203,11 +203,7 @@ exports.createIncomingDeliveryChallan = async (req, res) => {
       items: finalItems,
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Incoming Delivery Challan created successfully",
-      data: challan,
-    });
+   
 let data = await ExhibitionStock.findOne({
   warehouse_id: from_warehouse,
   exhibition_id: exhibition_id,
@@ -259,7 +255,11 @@ if (!data) {
     warehouse_name: warehouse.name,
     items: pendingItems,
   });
-}
+} res.status(201).json({
+      success: true,
+      message: "Incoming Delivery Challan created successfully",
+      data: challan,
+    });
 
   } catch (error) {
     res.status(500).json({
