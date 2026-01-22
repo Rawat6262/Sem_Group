@@ -97,6 +97,10 @@ const incomingDeliveryChallanSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+  return_address: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

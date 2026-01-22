@@ -83,12 +83,15 @@ router.get("/gettransporter", getAllTransporters);
 router.get("/getsingletransporter/:id", getTransporterById);
 router.put("/updatetransporter/:id", updateTransporter);
 router.delete("/deletetransporter/:id", deleteTransporter);
-const controller = require("../controller/incomingdeliverychallan.controller.js");
-
+// const controller = require("../controller/outgoingdocument.controller.js");
+// const controller2 = require("../controller/incomingd0cument.controller.js");
+let controller2 = require("../controller/outgoingdocument.controller.js");
+let controller = require("../controller/incomingd0cument.controller.js");
 // router.post("/createincomingchallan", controller.createIncomingDeliveryChallan);
 // router.get("/getallincomingchallan", controller.getAllIncomingDeliveryChallans);
 // router.get("/getincomingchallan/:id", controller.getIncomingDeliveryChallanById);
-router.post("/createoutgoingdocument", controller.createIncomingDeliveryChallan);
+router.post("/createincomingdocument",controller.createincomingDeliveryChallan);
+router.post("/createoutgoingdocument", controller2.createoutgoingDeliveryChallan);
 
 // module.exports = router;
 module.exports = router;

@@ -65,14 +65,17 @@ const Product = require("../models/product.model");
 // };
      
 
-const IncomingDeliveryChallan = require("../models/outgoingdocument");
+const IncomingDeliveryChallan = require("../models/incomingdocument.model");
 const Exhibition = require("../models/exhibition.model");
 const Warehouse = require("../models/warehouse.model");
 const Transporter = require("../models/transporter.model");
-const ExhibitionStock = require("../models/pendingdocument.model");
+// const ExhibitionStock = require("../models/pendingdocument.model");
+const outgoingdocument = require("../models/outgoingdocument.model");
+const pendingdocumentModel = require("../models/pendingdocument.model");
+const incomingdocumentModel = require("../models/incomingdocument.model");
 // const Item = require("../models/Item");
 
-exports.createIncomingDeliveryChallan = async (req, res) => {
+exports.createincomingDeliveryChallan = async (req, res) => {
   try {
     const {
       exhibition_id,
@@ -96,7 +99,8 @@ exports.createIncomingDeliveryChallan = async (req, res) => {
     }
     // 🔢 AUTO DOCUMENT NUMBER
     const count = await IncomingDeliveryChallan.countDocuments();
-    const document_number = `SEM/${count + 1}/25-26`;
+    const count2 = await outgoingdocument.countDocuments();
+    const document_number = `SEM/${count2+count + 1}/25-26`;
 
     // 🏛️ FETCH EXHIBITION
     const exhibition = await Exhibition.findById(exhibition_id);
@@ -128,6 +132,14 @@ exports.createIncomingDeliveryChallan = async (req, res) => {
     // 📦 BUILD ITEMS ARRAY (AUTO-FILL REQUIRED FIELDS)
     const finalItems = [];
     const pendingItems = [];
+
+    let find = pendingdocumentModel.findOne({warehouse_id:from_warehouse,exhibition_id:exhibition_id});
+    if(!find){
+      return res.status(400).json({
+        success: false,
+        message: "No pending document found for this exhibition and warehouse",
+      });
+    }   
 
     for (const i of items) {
       const item = await Product.findById(i.item_id);
@@ -162,7 +174,7 @@ exports.createIncomingDeliveryChallan = async (req, res) => {
     }}
     
     
-     product.out_for_exhibition += i.quantity;
+     product.out_for_exhibition -= i.quantity;
     await product.save({ session });
 
     // 5️⃣ Commit
@@ -170,6 +182,7 @@ exports.createIncomingDeliveryChallan = async (req, res) => {
     session.endSession();
 
 // console.log("data",data);
+
       finalItems.push({
         item_id: item._id,
         item_name: item.name,   // ✅ REQUIRED
@@ -177,16 +190,31 @@ exports.createIncomingDeliveryChallan = async (req, res) => {
         received_quantity: 0,
         remark: "",
       });
-      pendingItems.push({
-        product_id: item._id,
-        product_name: item.name,
-        total_sent: i.quantity,
-        // total_received: 0,
-        pending_quantity: i.quantity,
-      });
+
+await pendingdocumentModel.findOneAndUpdate(
+  {
+    exhibition_id,
+    warehouse_id: from_warehouse,
+    "items.product_id": i.item_id,
+  },
+  {
+    $inc: {
+      "items.$.pending_quantity": -i.quantity,
+    },
+  },
+  { new: true }
+);
+
+    //   pendingItems.push({
+    //     product_id: item._id,
+    //     product_name: item.name,
+    //     total_sent: i.quantity,
+    //     // total_received: 0,
+    //     pending_quantity: i.quantity,
+    //   });
     }
     // 🧾 CREATE CHALLAN
-    const challan = await IncomingDeliveryChallan.create({
+    const challan = await incomingdocumentModel.create({
       document_number,
       exhibition_id: exhibition._id,
       exhibition_name: exhibition.name,
@@ -195,69 +223,71 @@ exports.createIncomingDeliveryChallan = async (req, res) => {
 
       from_warehouse: warehouse._id,
       from_warehouse_name: warehouse.name,
-
+      return_address: warehouse.address,
       transporter_id: transporter._id,
       transporter_name: transporter.transporter_name,
 
       vehicle_no,
       items: finalItems,
+      return_address: warehouse.address,
     });
 
    
-let data = await ExhibitionStock.findOne({
-  warehouse_id: from_warehouse,
-  exhibition_id: exhibition_id,
-});
+// let data = await ExhibitionStock.findOne({
+//   warehouse_id: from_warehouse,
+//   exhibition_id: exhibition_id,
+// });
 
-if (data) {
-  for (const newItem of pendingItems) {
+// if (data) {
+//   for (const newItem of pendingItems) {
 
-    // 1️⃣ Try updating existing product
-    const updated = await ExhibitionStock.findOneAndUpdate(
-      {
-        exhibition_id: exhibition_id,
-        warehouse_id: from_warehouse,
-        "items.product_id": newItem.product_id,
-      },
-      {
-        $inc: {
-          "items.$.total_sent": newItem.total_sent,
-          "items.$.pending_quantity": newItem.pending_quantity,
-        },
-      },
-      { new: true }
-    );
+//     // 1️⃣ Try updating existing product
+//     const updated = await ExhibitionStock.findOneAndUpdate(
+//       {
+//         exhibition_id: exhibition_id,
+//         warehouse_id: from_warehouse,
+//         "items.product_id": newItem.product_id,
+//       },
+//       {
+//         $inc: {
+//           "items.$.total_sent": newItem.total_sent,
+//           "items.$.pending_quantity": newItem.pending_quantity,
+//         },
+//       },
+//       { new: true }
+//     );
 
-    // 2️⃣ If product not found → push new item
-    if (!updated) {
-      await ExhibitionStock.findOneAndUpdate(
-        {
-          exhibition_id: exhibition_id,
-          warehouse_id: from_warehouse,
-        },
-        {
-          $push: {
-            items: newItem,
-          },
-        },
-        { new: true }
-      );
-    }
-  }
-}
+//     // 2️⃣ If product not found → push new item
+//     if (!updated) {
+//       await ExhibitionStock.findOneAndUpdate(
+//         {
+//           exhibition_id: exhibition_id,
+//           warehouse_id: from_warehouse,
+//         },
+//         {
+//           $push: {
+//             items: newItem,
+//           },
+//         },
+//         { new: true }
+//       );
+//     }
+//   }
+// }
 
-// 3️⃣ If stock document does NOT exist → create
-if (!data) {
-  data = await ExhibitionStock.create({
-    exhibition_id: exhibition._id,
-    exhibition_name: exhibition.name,
-    warehouse_id: warehouse._id,
-    warehouse_name: warehouse.name,
-    items: pendingItems,
-  });
-} res.status(201).json({
+// // 3️⃣ If stock document does NOT exist → create
+// if (!data) {
+//   data = await ExhibitionStock.create({
+//     exhibition_id: exhibition._id,
+//     exhibition_name: exhibition.name,
+//     warehouse_id: warehouse._id,
+//     warehouse_name: warehouse.name,
+//     items: pendingItems,
+//   });
+// }
+ res.status(201).json({
       success: true,
-      message: "Incoming Delivery Challan created successfully",
+      message: "Outgoing Document created successfully",
       data: challan,
     });
 
