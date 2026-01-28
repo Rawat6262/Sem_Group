@@ -1,3 +1,14 @@
+const mongoose = require("mongoose");
+const Product = require("../models/product.model");
+const IncomingDeliveryChallan = require("../models/incomingdocument.model");
+const Exhibition = require("../models/exhibition.model");
+const Warehouse = require("../models/warehouse.model");
+const Transporter = require("../models/transporter.model");
+// const ExhibitionStock = require("../models/pendingdocument.model");
+const outgoingdocument = require("../models/outgoingdocument.model");
+const pendingdocumentModel = require("../models/pendingdocument.model");
+const incomingdocumentModel = require("../models/incomingdocument.model");
+// const Item = require("../models/Item");
 exports.createoutgoingDeliveryChallan = async (req, res) => {
   const session = await mongoose.startSession();
 
@@ -39,7 +50,7 @@ exports.createoutgoingDeliveryChallan = async (req, res) => {
 
     // Generate document number
     const totalOut = await outgoingdocument.countDocuments().session(session);
-    const totalIn = await incomingdocument.countDocuments().session(session);
+    const totalIn = await incomingdocumentModel.countDocuments().session(session);
 
     const document_number = `SEM/${totalOut + totalIn + 1}/25-26`;
 
