@@ -6,7 +6,7 @@ const Warehouse = require("../models/warehouse.model");
 const Transporter = require("../models/transporter.model");
 // const ExhibitionStock = require("../models/pendingdocument.model");
 const outgoingdocument = require("../models/outgoingdocument.model");
-const pendingdocumentModel = require("../models/pendingdocument.model");
+const ExhibitionStock = require("../models/pendingdocument.model");
 const incomingdocumentModel = require("../models/incomingdocument.model");
 // const Item = require("../models/Item");
 exports.createoutgoingDeliveryChallan = async (req, res) => {
