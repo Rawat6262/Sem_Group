@@ -90,8 +90,9 @@ let controller = require("../controller/incomingd0cument.controller.js");
 // router.post("/createincomingchallan", controller.createIncomingDeliveryChallan);
 // router.get("/getallincomingchallan", controller.getAllIncomingDeliveryChallans);
 // router.get("/getincomingchallan/:id", controller.getIncomingDeliveryChallanById);
-router.post("/createincomingdocument",controller.createincomingDeliveryChallan);
+// router.post("/createincomingdocument",controller.createincomingDeliveryChallan);
 router.post("/createoutgoingdocument", controller2.createoutgoingDeliveryChallan);
+router.post("/createincomingdocument", controller.createincomingDeliveryChallan);
 
 // module.exports = router;
 module.exports = router;
