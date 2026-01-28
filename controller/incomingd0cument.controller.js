@@ -1,70 +1,5 @@
 const mongoose = require("mongoose");
-const Item = require("../models/item.model");
 const Product = require("../models/product.model");
-
-// exports.createItem = async (req, res) => {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     const { item_name, quantity, remark, item_id } = req.body;
-//     if (quantity <= 0) {
-//       throw new Error("Quantity must be greater than 0");
-//     }
-
-//     // 1️⃣ Get Product
-//     const product = await Product.findById(item_id).session(session);
-//     if (!product) {
-//       throw new Error("Product not found");
-//     }
-//     console.log(product.total_no);
-//     if(quantity > product.total_no){
-//     // 2️⃣ Validation: quantity + out_for_exhibition ≤ no_of_item
-//     if (product.out_for_exhibition + quantity > product.total_no) {
-//       throw new Error(
-//         `Not enough stock. Available: ${
-//           product.total_no
-//         }`
-//       );
-//     }}
-
-//     // 3️⃣ Create Item
-//     const item = await Item.create(
-//       [
-//         {
-//           item_name,
-//           quantity,
-//           remark,
-//           item_id,
-//         },
-//       ],
-//       { session }
-//     );
-
-//     // 4️⃣ Update Product stock
-//     product.out_for_exhibition += quantity;
-//     await product.save({ session });
-
-//     // 5️⃣ Commit
-//     await session.commitTransaction();
-//     session.endSession();
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Item added and stock updated successfully",
-//       data: item[0],
-//     });
-//   } catch (error) {
-//     await session.abortTransaction();
-//     session.endSession();
-
-//     res.status(400).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
-     
-
 const IncomingDeliveryChallan = require("../models/incomingdocument.model");
 const Exhibition = require("../models/exhibition.model");
 const Warehouse = require("../models/warehouse.model");
@@ -76,6 +11,8 @@ const incomingdocumentModel = require("../models/incomingdocument.model");
 // const Item = require("../models/Item");
 
 exports.createincomingDeliveryChallan = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
     const {
       exhibition_id,
@@ -91,211 +28,154 @@ exports.createincomingDeliveryChallan = async (req, res) => {
         message: "Items are required",
       });
     }
-    if(!exhibition_id || !from_warehouse || !transporter_id || !vehicle_no){
+
+    if (!exhibition_id || !from_warehouse || !transporter_id || !vehicle_no) {
       return res.status(400).json({
         success: false,
-        message: "exhibition_id, from_warehouse, transporter_id and vehicle_no are required",
+        message: "All fields are required",
       });
     }
-    // 🔢 AUTO DOCUMENT NUMBER
-    const count = await IncomingDeliveryChallan.countDocuments();
-    const count2 = await outgoingdocument.countDocuments();
-    const document_number = `SEM/${count2+count + 1}/25-26`;
-
-    // 🏛️ FETCH EXHIBITION
-    const exhibition = await Exhibition.findById(exhibition_id);
-    if (!exhibition) {
-      return res.status(404).json({
-        success: false,
-        message: "Exhibition not found",
-      });
-    }
-
-    // 🏬 FETCH WAREHOUSE
-    const warehouse = await Warehouse.findById(from_warehouse);
-    if (!warehouse) {
-      return res.status(404).json({
-        success: false,
-        message: "Warehouse not found",
-      });
-    }
-
-    // 🚚 FETCH TRANSPORTER
-    const transporter = await Transporter.findById(transporter_id);
-    if (!transporter) {
-      return res.status(404).json({
-        success: false,
-        message: "Transporter not found",
-      });
-    }
-
-    // 📦 BUILD ITEMS ARRAY (AUTO-FILL REQUIRED FIELDS)
-    const finalItems = [];
-    const pendingItems = [];
-
-    let find = pendingdocumentModel.findOne({warehouse_id:from_warehouse,exhibition_id:exhibition_id});
-    if(!find){
-      return res.status(400).json({
-        success: false,
-        message: "No pending document found for this exhibition and warehouse",
-      });
-    }   
-
-    for (const i of items) {
-      const item = await Product.findById(i.item_id);
-      if (!item) {
-        return res.status(404).json({
-          success: false,
-          message: `Item not found: ${i.item_id}`,
-        });
+    const pending = await pendingdocumentModel.findOne({
+  exhibition_id,
+  warehouse_id: from_warehouse,
+  items: {
+    $all: items.map(i => ({
+      $elemMatch: {
+        product_id: i.item_id,
+        pending_quantity: { $gte: i.quantity }
       }
-       const session = await mongoose.startSession();
-  session.startTransaction();
-//  
-//     const { item_name, quantity, remark, item_id } = req.body;
-    if (i.quantity <= 0) {
-      throw new Error("Quantity must be greater than 0");
-    }
+    }))
+  }
+});
 
-//     // 1️⃣ Get Product
-    const product = await Product.findById(i.item_id).session(session);
-    if (!product) {
-      throw new Error("Product not found");
-    }
-    console.log(product.total_no);
-     if(i.quantity > product.total_no){
-    // 2️⃣ Validation: quantity + out_for_exhibition ≤ no_of_item
-    if (product.out_for_exhibition + i.quantity > product.total_no) {
-      throw new Error(
-        `Not enough stock of ${product.name}. Available: ${
-          product.total_no
-        }`
+if (!pending) {
+  return res.status(400).json({
+    success: false,
+    message: "Pending document does not match requested items",
+  });
+}
+
+    session.startTransaction();
+
+    // Fetch data inside transaction
+    const [exhibition, warehouse, transporter] = await Promise.all([
+      Exhibition.findById(exhibition_id).session(session),
+      Warehouse.findById(from_warehouse).session(session),
+      Transporter.findById(transporter_id).session(session),
+    ]);
+
+    if (!exhibition) throw new Error("Exhibition not found");
+    if (!warehouse) throw new Error("Warehouse not found");
+    if (!transporter) throw new Error("Transporter not found");
+
+    // Generate doc number (still not perfect, but safer)
+    const totalDocs = await IncomingDeliveryChallan.countDocuments().session(session);
+    const totalOut = await outgoingdocument.countDocuments().session(session);
+
+    const document_number = `SEM/${totalDocs + totalOut + 1}/25-26`;
+
+    const finalItems = [];
+
+    // Process items
+    for (const i of items) {
+
+      const product = await Product.findById(i.item_id).session(session);
+
+      if (!product) {
+        throw new Error(`Item not found: ${i.item_id}`);
+      }
+
+      if (i.quantity <= 0) {
+        throw new Error("Quantity must be greater than 0");
+      }
+
+      // Atomic stock check + update
+      const updatedProduct = await Product.findOneAndUpdate(
+        {
+          _id: i.item_id,
+          out_for_exhibition: { $gte: i.quantity }
+        },
+        {
+          $inc: { out_for_exhibition: -i.quantity }
+        },
+        { new: true, session }
       );
-    }}
-    
-    
-     product.out_for_exhibition -= i.quantity;
-    await product.save({ session });
 
-    // 5️⃣ Commit
-    await session.commitTransaction();
-    session.endSession();
+      if (!updatedProduct) {
+        throw new Error(`Not enough stock for ${product.name}`);
+      }
 
-// console.log("data",data);
+      // Update pending
+      const updatedPending = await pendingdocumentModel.findOneAndUpdate(
+        {
+          exhibition_id,
+          warehouse_id: from_warehouse,
+          "items.product_id": i.item_id,
+          "items.pending_quantity": { $gte: i.quantity }
+        },
+        {
+          $inc: {
+            "items.$.pending_quantity": -i.quantity
+          }
+        },
+        { new: true, session }
+      );
+
+      if (!updatedPending) {
+        throw new Error(`Not enough pending for ${product.name}`);
+      }
 
       finalItems.push({
-        item_id: item._id,
-        item_name: item.name,   // ✅ REQUIRED
+        item_id: product._id,
+        item_name: product.name,
         quantity: i.quantity,
         received_quantity: 0,
         remark: "",
       });
-
-await pendingdocumentModel.findOneAndUpdate(
-  {
-    exhibition_id,
-    warehouse_id: from_warehouse,
-    "items.product_id": i.item_id,
-  },
-  {
-    $inc: {
-      "items.$.pending_quantity": -i.quantity,
-    },
-  },
-  { new: true }
-);
-
-    //   pendingItems.push({
-    //     product_id: item._id,
-    //     product_name: item.name,
-    //     total_sent: i.quantity,
-    //     // total_received: 0,
-    //     pending_quantity: i.quantity,
-    //   });
     }
-    // 🧾 CREATE CHALLAN
-    const challan = await incomingdocumentModel.create({
-      document_number,
-      exhibition_id: exhibition._id,
-      exhibition_name: exhibition.name,
-      exhibition_date: exhibition.startDate,
-      exhibition_venue: exhibition.venue,
 
-      from_warehouse: warehouse._id,
-      from_warehouse_name: warehouse.name,
-      return_address: warehouse.address,
-      transporter_id: transporter._id,
-      transporter_name: transporter.transporter_name,
+    // Create challan inside transaction
+    const challan = await incomingdocumentModel.create(
+      [{
+        document_number,
 
-      vehicle_no,
-      items: finalItems,
-      return_address: warehouse.address,
-    });
+        exhibition_id: exhibition._id,
+        exhibition_name: exhibition.name,
+        exhibition_date: exhibition.startDate,
+        exhibition_venue: exhibition.venue,
 
-   
-// let data = await ExhibitionStock.findOne({
-//   warehouse_id: from_warehouse,
-//   exhibition_id: exhibition_id,
-// });
+        from_warehouse: warehouse._id,
+        from_warehouse_name: warehouse.name,
+        return_address: warehouse.address,
 
-// if (data) {
-//   for (const newItem of pendingItems) {
+        transporter_id: transporter._id,
+        transporter_name: transporter.transporter_name,
 
-//     // 1️⃣ Try updating existing product
-//     const updated = await ExhibitionStock.findOneAndUpdate(
-//       {
-//         exhibition_id: exhibition_id,
-//         warehouse_id: from_warehouse,
-//         "items.product_id": newItem.product_id,
-//       },
-//       {
-//         $inc: {
-//           "items.$.total_sent": newItem.total_sent,
-//           "items.$.pending_quantity": newItem.pending_quantity,
-//         },
-//       },
-//       { new: true }
-//     );
+        vehicle_no,
+        items: finalItems,
+      }],
+      { session }
+    );
 
-//     // 2️⃣ If product not found → push new item
-//     if (!updated) {
-//       await ExhibitionStock.findOneAndUpdate(
-//         {
-//           exhibition_id: exhibition_id,
-//           warehouse_id: from_warehouse,
-//         },
-//         {
-//           $push: {
-//             items: newItem,
-//           },
-//         },
-//         { new: true }
-//       );
-//     }
-//   }
-// }
+    await session.commitTransaction();
+    session.endSession();
 
-// // 3️⃣ If stock document does NOT exist → create
-// if (!data) {
-//   data = await ExhibitionStock.create({
-//     exhibition_id: exhibition._id,
-//     exhibition_name: exhibition.name,
-//     warehouse_id: warehouse._id,
-//     warehouse_name: warehouse.name,
-//     items: pendingItems,
-//   });
-// }
- res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Outgoing Document created successfully",
-      data: challan,
+      message: "Incoming challan created successfully",
+      data: challan[0],
     });
 
   } catch (error) {
-    res.status(500).json({
+
+    await session.abortTransaction();
+    session.endSession();
+
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
   }
 };
 
+  
