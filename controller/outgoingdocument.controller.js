@@ -96,9 +96,13 @@ exports.createoutgoingDeliveryChallan = async (req, res) => {
       });
     }
     // 🔢 AUTO DOCUMENT NUMBER
-    const count = await outgoingdocument.countDocuments();
-    const count2 = await incomingdocument.countDocuments();
-    const document_number = `SEM/${count + count2 + 1}/25-26`;
+    // const count = await outgoingdocument.countDocuments();
+    // const count2 = await incomingdocument.countDocuments();
+    // const document_number = `SEM/${count + count2 + 1}/25-26`;
+     const totalDocs = await outgoingdocument.countDocuments().session(session);
+        const totalOut = await incomingdocument.countDocuments().session(session);
+    
+        const document_number = `SEM/${totalDocs + totalOut + 1}/25-26`;
 
     // 🏛️ FETCH EXHIBITION
     const exhibition = await Exhibition.findById(exhibition_id);
