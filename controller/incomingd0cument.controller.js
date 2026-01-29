@@ -58,11 +58,14 @@ if (!pending) {
     session.startTransaction();
 
     // Fetch data inside transaction
-    const [exhibition, warehouse, transporter] = await Promise.all([
-      Exhibition.findById(exhibition_id).session(session),
-      Warehouse.findById(from_warehouse).session(session),
-      Transporter.findById(transporter_id).session(session),
-    ]);
+    const exhibition = await Exhibition.findById(exhibition_id).session(session);
+    if (!exhibition) throw new Error("Exhibition not found");
+
+    const warehouse = await Warehouse.findById(from_warehouse).session(session);
+    if (!warehouse) throw new Error("Warehouse not found");
+
+    const transporter = await Transporter.findById(transporter_id).session(session);
+    if (!transporter) throw new Error("Transporter not found");
 
     if (!exhibition) throw new Error("Exhibition not found");
     if (!warehouse) throw new Error("Warehouse not found");
@@ -107,19 +110,25 @@ if (!pending) {
 
       // Update pending
       const updatedPending = await pendingdocumentModel.findOneAndUpdate(
-        {
-          exhibition_id,
-          warehouse_id: from_warehouse,
-          "items.product_id": i.item_id,
-          "items.pending_quantity": { $gte: i.quantity }
-        },
-        {
-          $inc: {
-            "items.$.pending_quantity": -i.quantity
-          }
-        },
-        { new: true, session }
-      );
+  {
+    exhibition_id,
+    warehouse_id: from_warehouse,
+
+    items: {
+      $elemMatch: {
+        product_id: i.item_id,
+        pending_quantity: { $gte: i.quantity }
+      }
+    }
+  },
+  {
+    $inc: {
+      "items.$.pending_quantity": -i.quantity
+    }
+  },
+  { new: true, session }
+);
+
 
       if (!updatedPending) {
         throw new Error(`Not enough pending for ${product.name}`);

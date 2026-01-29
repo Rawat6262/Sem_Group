@@ -15,8 +15,6 @@ const productSchema = new mongoose.Schema(
       required: true,
       enum: ["pcs", "kg", "litre", "meter", "box", "packet", "dozen", "sqft.", "sqmtr.", "other", "set", "roll", "pair",],
     },
-
-    remark: { type: String },
     total_no: { type: Number, min: 0 },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
@@ -45,33 +43,77 @@ productSchema.pre("save", function () {
 // ✅ UPDATE (FIXED)
 //
 productSchema.pre("findOneAndUpdate", async function () {
+
   const update = this.getUpdate();
-  const $set = update.$set || update;
 
   const doc = await this.model.findOne(this.getQuery());
   if (!doc) return;
 
-  const no_of_item = $set.no_of_item ?? doc.no_of_item;
-  const repair_item = $set.repair_item ?? doc.repair_item;
-  const lost = $set.lost ?? doc.lost;
-  const dead = $set.dead ?? doc.dead;
-  const out_for_exhibition =
-    $set.out_for_exhibition ?? doc.out_for_exhibition;
+  // Get current values
+  let no_of_item = doc.no_of_item;
+  let repair_item = doc.repair_item;
+  let lost = doc.lost;
+  let dead = doc.dead;
+  let out_for_exhibition = doc.out_for_exhibition;
 
+
+  // ✅ Handle $set
+  if (update.$set) {
+    if (update.$set.no_of_item != null)
+      no_of_item = update.$set.no_of_item;
+
+    if (update.$set.repair_item != null)
+      repair_item = update.$set.repair_item;
+
+    if (update.$set.lost != null)
+      lost = update.$set.lost;
+
+    if (update.$set.dead != null)
+      dead = update.$set.dead;
+
+    if (update.$set.out_for_exhibition != null)
+      out_for_exhibition = update.$set.out_for_exhibition;
+  }
+
+
+  // ✅ Handle $inc
+  if (update.$inc) {
+
+    if (update.$inc.out_for_exhibition != null)
+      out_for_exhibition += update.$inc.out_for_exhibition;
+
+    if (update.$inc.repair_item != null)
+      repair_item += update.$inc.repair_item;
+
+    if (update.$inc.lost != null)
+      lost += update.$inc.lost;
+
+    if (update.$inc.dead != null)
+      dead += update.$inc.dead;
+  }
+
+
+  // ✅ Recalculate total
   const total_no =
     no_of_item - repair_item - out_for_exhibition - lost - dead;
 
-  // ❌ STOP invalid update
+
   if (total_no < 0) {
     throw new Error(
-      "Invalid stock update: out_for_exhibition exceeds available stock"
+      "Invalid stock update: stock cannot be negative"
     );
   }
 
-  // ✅ Apply calculated value
-  $set.total_no = total_no;
 
-  this.setUpdate({ $set });
+  // ✅ Force set total_no
+  this.setUpdate({
+    ...update,
+    $set: {
+      ...(update.$set || {}),
+      total_no,
+    },
+  });
 });
+
 
 module.exports = mongoose.model("Product", productSchema);

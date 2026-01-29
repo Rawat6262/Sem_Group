@@ -10,9 +10,11 @@ const ExhibitionStock = require("../models/pendingdocument.model");
 const incomingdocumentModel = require("../models/incomingdocument.model");
 // const Item = require("../models/Item");
 exports.createoutgoingDeliveryChallan = async (req, res) => {
+
   const session = await mongoose.startSession();
 
   try {
+
     const {
       exhibition_id,
       from_warehouse,
@@ -35,56 +37,62 @@ exports.createoutgoingDeliveryChallan = async (req, res) => {
       });
     }
 
-    session.startTransaction();
+    // ✅ Start transaction
+    await session.startTransaction();
 
-    // Fetch base data
-    const [exhibition, warehouse, transporter] = await Promise.all([
-      Exhibition.findById(exhibition_id).session(session),
-      Warehouse.findById(from_warehouse).session(session),
-      Transporter.findById(transporter_id).session(session),
-    ]);
-
+    // ✅ Fetch one by one
+    const exhibition = await Exhibition.findById(exhibition_id).session(session);
     if (!exhibition) throw new Error("Exhibition not found");
+
+    const warehouse = await Warehouse.findById(from_warehouse).session(session);
     if (!warehouse) throw new Error("Warehouse not found");
+
+    const transporter = await Transporter.findById(transporter_id).session(session);
     if (!transporter) throw new Error("Transporter not found");
 
-    // Generate document number
+
+    // ✅ Generate document number
     const totalOut = await outgoingdocument.countDocuments().session(session);
     const totalIn = await incomingdocumentModel.countDocuments().session(session);
 
     const document_number = `SEM/${totalOut + totalIn + 1}/25-26`;
 
+
     const finalItems = [];
     const pendingItems = [];
 
-    // Process items
+    let totalExhibitionQty = 0; // ⭐ NEW
+
+
+    // ✅ Process items
     for (const i of items) {
 
       if (i.quantity <= 0) {
         throw new Error("Quantity must be greater than 0");
       }
 
-      // Atomic stock update
       const product = await Product.findOneAndUpdate(
         {
           _id: i.item_id,
           total_no: { $gte: i.quantity },
           $expr: {
             $lte: [
-              { $add: ["$out_for_exhibition", i.quantity] },
-              "$total_no"
-            ]
-          }
+              { $add: [ i.quantity] },
+              "$total_no",
+            ],
+          },
         },
         {
-          $inc: { out_for_exhibition: i.quantity }
+          $inc: { out_for_exhibition: i.quantity },
         },
         { new: true, session }
       );
-
       if (!product) {
         throw new Error(`Not enough stock for item ${i.item_id}`);
       }
+
+      totalExhibitionQty += i.quantity; // ⭐ NEW
+
 
       finalItems.push({
         item_id: product._id,
@@ -93,38 +101,53 @@ exports.createoutgoingDeliveryChallan = async (req, res) => {
         received_quantity: 0,
         remark: "",
       });
-
+      
       pendingItems.push({
         product_id: product._id,
         product_name: product.name,
         total_sent: i.quantity,
         pending_quantity: i.quantity,
       });
+      
     }
 
-    // Create challan
+
+    // ✅ Create challan
     const challan = await outgoingdocument.create(
-      [{
-        document_number,
+      [
+        {
+          document_number,
 
-        exhibition_id: exhibition._id,
-        exhibition_name: exhibition.name,
-        exhibition_date: exhibition.startDate,
-        exhibition_venue: exhibition.venue,
+          exhibition_id: exhibition._id,
+          exhibition_name: exhibition.name,
+          exhibition_date: exhibition.startDate,
+          exhibition_venue: exhibition.venue,
 
-        from_warehouse: warehouse._id,
-        from_warehouse_name: warehouse.name,
+          from_warehouse: warehouse._id,
+          from_warehouse_name: warehouse.name,
 
-        transporter_id: transporter._id,
-        transporter_name: transporter.transporter_name,
+          transporter_id: transporter._id,
+          transporter_name: transporter.transporter_name,
 
-        vehicle_no,
-        items: finalItems,
-      }],
+          vehicle_no,
+          items: finalItems,
+        },
+      ],
       { session }
     );
 
-    // Update / Create ExhibitionStock
+
+    // ✅ Update Exhibition main document ⭐ NEW
+    await Exhibition.findByIdAndUpdate(
+      exhibition_id,
+      {
+        $inc: { out_for_exhibition: totalExhibitionQty },
+      },
+      { session }
+    );
+
+
+    // ✅ Update ExhibitionStock
     let stock = await ExhibitionStock.findOne({
       exhibition_id,
       warehouse_id: from_warehouse,
@@ -143,7 +166,7 @@ exports.createoutgoingDeliveryChallan = async (req, res) => {
     for (const newItem of pendingItems) {
 
       const existing = stock.items.find(
-        i => i.product_id.toString() === newItem.product_id.toString()
+        (i) => i.product_id.toString() === newItem.product_id.toString()
       );
 
       if (existing) {
@@ -156,9 +179,10 @@ exports.createoutgoingDeliveryChallan = async (req, res) => {
 
     await stock.save({ session });
 
-    // Commit all
+
+    // ✅ Commit
     await session.commitTransaction();
-    session.endSession();
+
 
     return res.status(201).json({
       success: true,
@@ -169,11 +193,16 @@ exports.createoutgoingDeliveryChallan = async (req, res) => {
   } catch (error) {
 
     await session.abortTransaction();
-    session.endSession();
 
     return res.status(400).json({
       success: false,
       message: error.message,
     });
+
+  } finally {
+
+    await session.endSession();
   }
 };
+
+
