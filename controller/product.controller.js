@@ -1,25 +1,64 @@
 const Product = require("../models/product.model");
 const Warehouse = require("../models/warehouse.model");
 
-exports.addProductInwarehouse =  async (req, res) => {
-  let warehouseId =req.params.id;
-  console.log(warehouseId)
-  const warehouse = await Warehouse.findById(req.params.id);
-  warehouse.products.push(req.body.productId);
+exports.addProductInwarehouse = async (req, res) => {
+  try {
 
-  await Warehouse.findByIdAndUpdate(
-  warehouseId,
-  { $addToSet: { products:req.body.productId } }, // 👈 prevents duplicates
-  { new: true }
-);
-  await Product.findByIdAndUpdate(
-  req.body.productId,
-  { $addToSet: { warehouse: req.params.id } }, // 👈 prevents duplicates
-  { new: true }
-);
+    const warehouseId = req.params.id;
+    const { productId } = req.body;
 
-  res.send(warehouse);
-}
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        message: "productId is required"
+      });
+    }
+
+    // ✅ Check warehouse exists
+    const warehouse = await Warehouse.findById(warehouseId);
+
+    if (!warehouse) {
+      return res.status(404).json({
+        success: false,
+        message: "Warehouse not found"
+      });
+    }
+
+    // ✅ Add product to warehouse (array → use $addToSet)
+    const updatedWarehouse = await Warehouse.findByIdAndUpdate(
+      warehouseId,
+      {
+        $addToSet: { products: productId } // prevents duplicates
+      },
+      { new: true }
+    );
+
+    // ✅ Set warehouse in product (single value → use $set)
+    await Product.findByIdAndUpdate(
+      productId,
+      {
+        $set: { warehouse: warehouseId }
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Product added to warehouse successfully",
+      data: updatedWarehouse
+    });
+
+  } catch (error) {
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+};
+
+
 
 
 exports.addProduct = async (req, res) => {
