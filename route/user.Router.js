@@ -93,6 +93,10 @@ let controller = require("../controller/incomingd0cument.controller.js");
 // router.post("/createincomingdocument",controller.createincomingDeliveryChallan);
 router.post("/createoutgoingdocument", controller2.createoutgoingDeliveryChallan);
 router.post("/createincomingdocument", controller.createincomingDeliveryChallan);
-
+let pendingController = require("../controller/pending.controller.js");
+router.get(
+  "/getpendingdocument/:warehouse_id/:exhibition_id",
+  pendingController.getpendingdocuments
+);
 // module.exports = router;
 module.exports = router;
