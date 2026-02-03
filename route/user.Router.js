@@ -98,5 +98,10 @@ router.get(
   "/getpendingdocument/:warehouse_id/:exhibition_id",
   pendingController.getpendingdocuments
 );
+let labourController = require("../controller/labour.controller.js");
+router.get('/getlabours',labourController.getlabours);
+router.post('/addlabour',labourController.addlabour);
+router.get('/getlabourbyid/:id',labourController.getlabourbyid);
+router.put('/updatelabour/:id',labourController.updatelabour);
 // module.exports = router;
 module.exports = router;
