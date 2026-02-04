@@ -103,5 +103,6 @@ router.get('/getlabours',labourController.getlabours);
 router.post('/addlabour',labourController.addlabour);
 router.get('/getlabourbyid/:id',labourController.getlabourbyid);
 router.put('/updatelabour/:id',labourController.updatelabour);
+router.delete('/deletelabour/:id',labourController.deletelabour);
 // module.exports = router;
 module.exports = router;

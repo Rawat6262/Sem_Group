@@ -97,8 +97,6 @@ catch(err){
     });
 }
 }
-{
-}
 exports.getlabourbyphone = async (req,res)=>{
 try{
     let labour = await Labour.findOne({phone_number:req.params.phone_number}).populate('exhibition');
