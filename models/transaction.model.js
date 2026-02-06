@@ -57,7 +57,10 @@ const transactionSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    remark: String,
+    remark:{
+      type:String,
+      required:true
+    },
 
     transaction_date: {
       type: Date,
