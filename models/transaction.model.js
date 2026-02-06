@@ -47,7 +47,7 @@ const transactionSchema = new mongoose.Schema(
 
     payment_mode: {
       type: String,
-      enum: ["cash", "upi", "bank", "online"],
+      enum: ["cash", "upi", "netbanking",'other'],
       default: "cash",
     },
 
