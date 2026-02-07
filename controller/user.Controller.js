@@ -59,7 +59,7 @@ exports.createSignup = async (req, res) => {
     // ✅ Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
-    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    const otpExpiry = new Date(Date.now() + 1 * 60 * 1000); // 5 min
 
     // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
