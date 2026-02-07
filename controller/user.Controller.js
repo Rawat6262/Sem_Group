@@ -50,10 +50,7 @@ exports.createSignup = async (req, res) => {
     });
 
     if (pendingUser) {
-      return res.status(409).json({
-        success: false,
-        message: "OTP already sent. Please verify"
-      });
+    await SignupSem.deleteOne({ _id: pendingUser._id });
     }
 
     // ✅ Generate OTP
