@@ -7,6 +7,10 @@ const transactionSchema = new mongoose.Schema(
       ref: "Exhibition",
       required: true,
     },
+    exhibition_name: {
+      type: String,
+      required: true,
+    },
 
     category: {
       type: String,
@@ -19,10 +23,18 @@ const transactionSchema = new mongoose.Schema(
       ref: "Labour",
       default: null,
     },
+    labour_name: {
+      type: String,
+      default: null,
+    },
 
     transporter: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Transporter",
+      default: null,
+    },
+    transporter_name: {
+      type: String,
       default: null,
     },
 
@@ -65,6 +77,10 @@ const transactionSchema = new mongoose.Schema(
     transaction_date: {
       type: Date,
       default: Date.now,
+    },
+    vechle_number:{
+      type:String,
+      default:null
     },
   },
   { timestamps: true }

@@ -22,7 +22,15 @@ exports.createSignup = async (req, res) => {
       password
     } = req.body;
 
-    // 1️⃣ Check already approved user
+    // ✅ Basic validation
+    if (!gmail || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required"
+      });
+    }
+
+    // ✅ Check approved user
     const approvedUser = await SignupSem.findOne({
       gmail,
       isapproved: true
@@ -31,11 +39,11 @@ exports.createSignup = async (req, res) => {
     if (approvedUser) {
       return res.status(409).json({
         success: false,
-        message: "User already exists and is approved"
+        message: "User already exists"
       });
     }
 
-    // 2️⃣ Check pending user
+    // ✅ Check pending user
     const pendingUser = await SignupSem.findOne({
       gmail,
       isapproved: false
@@ -48,30 +56,15 @@ exports.createSignup = async (req, res) => {
       });
     }
 
-    // 3️⃣ Generate OTP
+    // ✅ Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
-    const otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
 
-    // 4️⃣ Hash password
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 5️⃣ Send email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    await transporter.sendMail({
-      from: '"Onexhib App" <no-reply@onexhib.com>',
-      to: gmail,
-      subject: "Your OTP Code - Onexhib Verification",
-      html: `<h2>Your OTP is ${otp}</h2><p>Valid for 5 minutes</p>`
-    });
-
-    // 6️⃣ Save user
+    // ✅ Save user first
     const user = await SignupSem.create({
       full_name,
       gmail,
@@ -86,6 +79,22 @@ exports.createSignup = async (req, res) => {
       otp,
       otpExpiry,
       isapproved: false
+    });
+
+    // ✅ Send email after save
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    await transporter.sendMail({
+      from: '"Onexhib App" <no-reply@onexhib.com>',
+      to: gmail,
+      subject: "Your OTP Code - Onexhib Verification",
+      html: `<h2>Your OTP is ${otp}</h2><p>Valid for 5 minutes</p>`
     });
 
     const token = setExhibition(user);
@@ -109,6 +118,7 @@ exports.createSignup = async (req, res) => {
     });
   }
 };
+
 
 
 
