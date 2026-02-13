@@ -11,12 +11,27 @@ const transactionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    supervisor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Supervisor",  
+    },
+    supervisor_name: {
+      type: String,
+      default: null,
+    },
 
     category: {
       type: String,
       enum: ["labour", "transport", "exhibition", "other"],
       required: true,
     },
+    porpose: [
+{
+  type: String,
+  required: true,
+  enum: ["food",'loading', "unloading", "transportation", "other",'labour','travel','Stay','Misc','material',],
+}
+    ],
 
     labour: {
       type: mongoose.Schema.Types.ObjectId,
